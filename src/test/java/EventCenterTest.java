@@ -1,4 +1,4 @@
-import com.isc.eventCenter.ActiveMQEventCenter;
+import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.google.gson.Gson;
 import org.junit.Test;
 

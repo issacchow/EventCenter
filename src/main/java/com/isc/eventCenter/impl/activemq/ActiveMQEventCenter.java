@@ -1,7 +1,13 @@
-package com.isc.eventCenter;
+package com.isc.eventCenter.impl.activemq;
 
 import com.google.gson.Gson;
+import com.isc.eventCenter.Event;
+import com.isc.eventCenter.IEventCenter;
+import com.isc.eventCenter.IEventListener;
+import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.RedeliveryPolicy;
+import org.apache.activemq.broker.region.policy.RedeliveryPolicyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -37,8 +43,10 @@ public class ActiveMQEventCenter implements
 
 
     private boolean onRunning = false;
-    private Connection connection = null;
+    private ActiveMQConnection connection = null;
     private Session session = null;
+    //默认连接重发策略
+    private RedeliveryPolicy defaultRedeliveryPolicy = null;
 
     private String id = "undefined";
     private String username = ActiveMQConnectionFactory.DEFAULT_USER;
@@ -77,6 +85,16 @@ public class ActiveMQEventCenter implements
         this.brokerurl = brokerurl;
     }
 
+    public RedeliveryPolicy getDefaultRedeliveryPolicy() {
+        return defaultRedeliveryPolicy;
+    }
+
+    public void setDefaultRedeliveryPolicy(RedeliveryPolicy defaultRedeliveryPolicy) {
+        this.defaultRedeliveryPolicy = defaultRedeliveryPolicy;
+        if(this.connection!=null && defaultRedeliveryPolicy!=null){
+            this.connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+        }
+    }
 
     /************
      * 实例方法
@@ -112,8 +130,10 @@ public class ActiveMQEventCenter implements
         if (password != null || StringUtils.isEmpty(password) == false)
             this.setPassword(password);
 
-        if (autoConnect)
+        if (autoConnect) {
             this.connect();
+            this.reloadAllListener();
+        }
 
     }
 
@@ -170,6 +190,7 @@ public class ActiveMQEventCenter implements
                 String eventName = getListenEventName(eventListener);
                 String listenerName = eventListener.getClass().getName();
 
+
                 Topic topic = session.createTopic(eventName);
                 subcrbieEventTopicList.add(topic);
                 TopicSubscriber subscriber = session.createDurableSubscriber(topic, listenerName);
@@ -179,10 +200,8 @@ public class ActiveMQEventCenter implements
                 messageListener.setTopic(topic);
                 messageListener.setEventListener(eventListener);
                 subscriber.setMessageListener(messageListener);
-
             }
 
-            onRunning = true;
 
             logger.info("IEventCenter [{}] reload all listener success!", this.getId());
 
@@ -221,44 +240,20 @@ public class ActiveMQEventCenter implements
         if (onRunning)
             return;
 
-        logger.info("ActiveMQ IEventCenter {} start to connect...",this.getId());
+        logger.info("ActiveMQ IEventCenter {} start to connect...", this.getId());
 
         if (initSession() == false) {
-            logger.error("ActiveMQ IEventCenter {} connect fail",this.getId());
+            logger.error("ActiveMQ IEventCenter {} connect fail", this.getId());
             return;
         }
 
-        logger.info("ActiveMQ IEventCenter {} is connected",this.getId());
-
-        try {
-
-            //持久化事件订阅
-
-            for (IEventListener eventListener : listenerList) {
-
-                String eventName = getListenEventName(eventListener);
-                String listenerName = eventListener.getClass().getName();
-
-                Topic topic = session.createTopic(eventName);
-                subcrbieEventTopicList.add(topic);
-                TopicSubscriber subscriber = session.createDurableSubscriber(topic, listenerName);
-                TopicMessageListener messageListener = new TopicMessageListener();
-                messageListener.setEventCenter(this);
-                messageListener.setSession(session);
-                messageListener.setTopic(topic);
-                messageListener.setEventListener(eventListener);
-                subscriber.setMessageListener(messageListener);
-
-            }
-
-            onRunning = true;
-
-            logger.info("IEventCenter [{}] connected!", this.getId());
+        logger.info("ActiveMQ IEventCenter {} is connected", this.getId());
 
 
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
+        onRunning = true;
+
+        logger.info("IEventCenter [{}] connected!", this.getId());
+
     }
 
     @Override
@@ -274,12 +269,19 @@ public class ActiveMQEventCenter implements
 
 
     private boolean initSession() {
-        ConnectionFactory jmsConnectionFactory = new ActiveMQConnectionFactory(
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
                 this.getUsername(), this.getPassword(), this.getBrokerurl()
         );
 
+
+
+
         try {
-            connection = jmsConnectionFactory.createConnection();
+            connection = (ActiveMQConnection)connectionFactory.createConnection();
+            if(defaultRedeliveryPolicy!=null){
+                //设置默认重发策略
+                connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+            }
 
             //耐久性订阅者,必须对connection设定ClientId且此ID全局不能重复,否则将会抛出
             //javax.jms.JMSException:

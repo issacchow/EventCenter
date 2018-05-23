@@ -1,4 +1,4 @@
-import com.isc.eventCenter.ActiveMQEventCenter;
+import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.isc.eventCenter.Event;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
