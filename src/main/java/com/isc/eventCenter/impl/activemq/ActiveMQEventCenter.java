@@ -6,8 +6,8 @@ import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.apache.activemq.RedeliveryPolicy;
-import org.apache.activemq.broker.region.policy.RedeliveryPolicyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -47,6 +47,8 @@ public class ActiveMQEventCenter implements
     private Session session = null;
     //默认连接重发策略
     private RedeliveryPolicy defaultRedeliveryPolicy = null;
+    //默认预取策略
+    private ActiveMQPrefetchPolicy defaultPrefetchPolicy = null;
 
     private String id = "undefined";
     private String username = ActiveMQConnectionFactory.DEFAULT_USER;
@@ -93,6 +95,17 @@ public class ActiveMQEventCenter implements
         this.defaultRedeliveryPolicy = defaultRedeliveryPolicy;
         if(this.connection!=null && defaultRedeliveryPolicy!=null){
             this.connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+        }
+    }
+
+    public ActiveMQPrefetchPolicy getDefaultPrefetchPolicy() {
+        return defaultPrefetchPolicy;
+    }
+
+    public void setDefaultPrefetchPolicy(ActiveMQPrefetchPolicy defaultPrefetchPolicy) {
+        this.defaultPrefetchPolicy = defaultPrefetchPolicy;
+        if(this.connection!=null && defaultPrefetchPolicy !=null){
+            this.connection.setPrefetchPolicy(defaultPrefetchPolicy);
         }
     }
 
@@ -281,6 +294,10 @@ public class ActiveMQEventCenter implements
             if(defaultRedeliveryPolicy!=null){
                 //设置默认重发策略
                 connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+            }
+            if(defaultPrefetchPolicy !=null){
+                //设置默认预取策略
+                connection.setPrefetchPolicy(defaultPrefetchPolicy);
             }
 
             //耐久性订阅者,必须对connection设定ClientId且此ID全局不能重复,否则将会抛出
