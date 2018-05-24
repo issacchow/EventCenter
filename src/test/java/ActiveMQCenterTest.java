@@ -2,6 +2,8 @@ import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.isc.eventCenter.Event;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
+import com.isc.eventCenter.impl.activemq.ActiveMQEventCenterFactory;
+import org.apache.activemq.RedeliveryPolicy;
 import org.junit.Test;
 
 import java.util.Timer;
@@ -63,9 +65,18 @@ public class ActiveMQCenterTest {
 
     private IEventCenter buildEventCenter(String id){
         ActiveMQEventCenter eventCenter = new ActiveMQEventCenter(id,null,null,null);
+        RedeliveryPolicy policy = new RedeliveryPolicy();
+
+        eventCenter.setRedeliveryPolicy(policy);
         return eventCenter;
     }
 
+
+    @Test
+    public void eventCenterFactoryTest(){
+        ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
+         factory.build("/Users/IssacChow/workstation/My-Projects/eventCenter/src/test/resources/activeMQEventCenter.properties");
+    }
 
 
 

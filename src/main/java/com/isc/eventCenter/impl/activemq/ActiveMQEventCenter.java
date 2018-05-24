@@ -46,9 +46,9 @@ public class ActiveMQEventCenter implements
     private ActiveMQConnection connection = null;
     private Session session = null;
     //默认连接重发策略
-    private RedeliveryPolicy defaultRedeliveryPolicy = null;
+    private RedeliveryPolicy redeliveryPolicy = null;
     //默认预取策略
-    private ActiveMQPrefetchPolicy defaultPrefetchPolicy = null;
+    private ActiveMQPrefetchPolicy prefetchPolicy = null;
 
     private String id = "undefined";
     private String username = ActiveMQConnectionFactory.DEFAULT_USER;
@@ -87,25 +87,25 @@ public class ActiveMQEventCenter implements
         this.brokerurl = brokerurl;
     }
 
-    public RedeliveryPolicy getDefaultRedeliveryPolicy() {
-        return defaultRedeliveryPolicy;
+    public RedeliveryPolicy getRedeliveryPolicy() {
+        return redeliveryPolicy;
     }
 
-    public void setDefaultRedeliveryPolicy(RedeliveryPolicy defaultRedeliveryPolicy) {
-        this.defaultRedeliveryPolicy = defaultRedeliveryPolicy;
-        if(this.connection!=null && defaultRedeliveryPolicy!=null){
-            this.connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+    public void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
+        this.redeliveryPolicy = redeliveryPolicy;
+        if(this.connection!=null && redeliveryPolicy !=null){
+            this.connection.setRedeliveryPolicy(redeliveryPolicy);
         }
     }
 
-    public ActiveMQPrefetchPolicy getDefaultPrefetchPolicy() {
-        return defaultPrefetchPolicy;
+    public ActiveMQPrefetchPolicy getPrefetchPolicy() {
+        return prefetchPolicy;
     }
 
-    public void setDefaultPrefetchPolicy(ActiveMQPrefetchPolicy defaultPrefetchPolicy) {
-        this.defaultPrefetchPolicy = defaultPrefetchPolicy;
-        if(this.connection!=null && defaultPrefetchPolicy !=null){
-            this.connection.setPrefetchPolicy(defaultPrefetchPolicy);
+    public void setPrefetchPolicy(ActiveMQPrefetchPolicy prefetchPolicy) {
+        this.prefetchPolicy = prefetchPolicy;
+        if(this.connection!=null && prefetchPolicy !=null){
+            this.connection.setPrefetchPolicy(prefetchPolicy);
         }
     }
 
@@ -291,13 +291,13 @@ public class ActiveMQEventCenter implements
 
         try {
             connection = (ActiveMQConnection)connectionFactory.createConnection();
-            if(defaultRedeliveryPolicy!=null){
+            if(redeliveryPolicy !=null){
                 //设置默认重发策略
-                connection.setRedeliveryPolicy(defaultRedeliveryPolicy);
+                connection.setRedeliveryPolicy(redeliveryPolicy);
             }
-            if(defaultPrefetchPolicy !=null){
+            if(prefetchPolicy !=null){
                 //设置默认预取策略
-                connection.setPrefetchPolicy(defaultPrefetchPolicy);
+                connection.setPrefetchPolicy(prefetchPolicy);
             }
 
             //耐久性订阅者,必须对connection设定ClientId且此ID全局不能重复,否则将会抛出
