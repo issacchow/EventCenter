@@ -10,8 +10,6 @@ import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.apache.activemq.RedeliveryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.util.StringUtils;
 
 import javax.jms.*;
@@ -29,8 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by IssacChow on 17/6/6.
  */
 public class ActiveMQEventCenter implements
-        IEventCenter,
-        ApplicationListener<ContextStoppedEvent> {
+        IEventCenter {
 
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -50,10 +47,11 @@ public class ActiveMQEventCenter implements
     //默认预取策略
     private ActiveMQPrefetchPolicy prefetchPolicy = null;
 
+
     private String id = "undefined";
     private String username = ActiveMQConnectionFactory.DEFAULT_USER;
     private String password = ActiveMQConnectionFactory.DEFAULT_PASSWORD;
-    private String brokerurl = ActiveMQConnectionFactory.DEFAULT_BROKER_URL;
+    private String brokerUrl = ActiveMQConnectionFactory.DEFAULT_BROKER_URL;
 
     public String getId() {
         return id;
@@ -79,12 +77,12 @@ public class ActiveMQEventCenter implements
         this.password = password;
     }
 
-    public String getBrokerurl() {
-        return brokerurl;
+    public String getBrokerUrl() {
+        return brokerUrl;
     }
 
-    public void setBrokerurl(String brokerurl) {
-        this.brokerurl = brokerurl;
+    public void setBrokerUrl(String brokerUrl) {
+        this.brokerUrl = brokerUrl;
     }
 
     public RedeliveryPolicy getRedeliveryPolicy() {
@@ -93,9 +91,9 @@ public class ActiveMQEventCenter implements
 
     public void setRedeliveryPolicy(RedeliveryPolicy redeliveryPolicy) {
         this.redeliveryPolicy = redeliveryPolicy;
-        if(this.connection!=null && redeliveryPolicy !=null){
-            this.connection.setRedeliveryPolicy(redeliveryPolicy);
-        }
+//        if(this.connection!=null && redeliveryPolicy !=null){
+//            this.connection.setRedeliveryPolicy(redeliveryPolicy);
+//        }
     }
 
     public ActiveMQPrefetchPolicy getPrefetchPolicy() {
@@ -104,9 +102,9 @@ public class ActiveMQEventCenter implements
 
     public void setPrefetchPolicy(ActiveMQPrefetchPolicy prefetchPolicy) {
         this.prefetchPolicy = prefetchPolicy;
-        if(this.connection!=null && prefetchPolicy !=null){
-            this.connection.setPrefetchPolicy(prefetchPolicy);
-        }
+//        if(this.connection!=null && prefetchPolicy !=null){
+//            this.connection.setPrefetchPolicy(prefetchPolicy);
+//        }
     }
 
     /************
@@ -114,7 +112,7 @@ public class ActiveMQEventCenter implements
      ************/
 
     public ActiveMQEventCenter() {
-
+        this(null,null,null,null,false);
     }
 
     public ActiveMQEventCenter(String id, String brokerurl, String username, String password) {
@@ -131,11 +129,14 @@ public class ActiveMQEventCenter implements
      */
     public ActiveMQEventCenter(String id, String brokerurl, String username, String password, boolean autoConnect) {
 
+        this.redeliveryPolicy = new RedeliveryPolicy();
+        this.prefetchPolicy = new ActiveMQPrefetchPolicy();
+
         if (id != null || StringUtils.isEmpty(id) == false)
             this.setId(id);
 
         if (brokerurl != null || StringUtils.isEmpty(brokerurl) == false)
-            this.setBrokerurl(brokerurl);
+            this.setBrokerUrl(brokerurl);
 
         if (username != null || StringUtils.isEmpty(username) == false)
             this.setUsername(username);
@@ -283,7 +284,7 @@ public class ActiveMQEventCenter implements
 
     private boolean initSession() {
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(
-                this.getUsername(), this.getPassword(), this.getBrokerurl()
+                this.getUsername(), this.getPassword(), this.getBrokerUrl()
         );
 
 
@@ -333,10 +334,10 @@ public class ActiveMQEventCenter implements
         return eventClass;
     }
 
-    @Override
-    public void onApplicationEvent(ContextStoppedEvent event) {
-        this.disconnect();
-    }
+//    @Override
+//    public void onApplicationEvent(ContextStoppedEvent event) {
+//        this.disconnect();
+//    }
 
 
     /**

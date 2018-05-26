@@ -6,8 +6,12 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValues;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -15,42 +19,55 @@ import java.util.Properties;
  */
 public class ActiveMQEventCenterFactory implements IEventCentorFactory {
 
+
+    private ResourceLoader resourceLoader = null;
+
+    private ResourceLoader getResourceLoader() {
+        if(resourceLoader==null){
+            resourceLoader = new PathMatchingResourcePatternResolver();
+        }
+        return resourceLoader;
+    }
+
+
+
     @Override
     public IEventCenter build() {
         ActiveMQEventCenter center = new ActiveMQEventCenter();
         return center;
     }
 
+
     @Override
-    public IEventCenter build(String propertiesFile) {
+    public IEventCenter build(String resourceName) {
+        Resource resource = getResourceLoader().getResource(resourceName);
+        return build(resource);
+    }
 
+
+    @Override
+    public IEventCenter build(Resource resource) {
+
+        Properties properties = null;
         try {
-            InputStream inputStream = new FileInputStream(new File(propertiesFile));
-            Properties properties = new Properties();
-            try {
-                properties.load(inputStream);
-
-                PropertyValues propertyValues = new MutablePropertyValues(properties);
-
-                ActiveMQEventCenter center = new ActiveMQEventCenter();
-                BeanWrapper configWrapper = new BeanWrapperImpl(new ActiveMQEventCenterConfig());
-                configWrapper.setPropertyValues(propertyValues);
-                ActiveMQEventCenterConfig cfg = (ActiveMQEventCenterConfig) configWrapper.getWrappedInstance();
-
-                center.setRedeliveryPolicy(cfg.getRedeliveryPolicy());
-                center.setPrefetchPolicy(cfg.getPrefetchPolicy());
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-
-        } catch (FileNotFoundException e) {
+            properties = PropertiesLoaderUtils.loadProperties(resource);
+            return build(properties);
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-        return null;
+
+
+
+    }
+
+
+    private ActiveMQEventCenter build(Properties properties){
+        ActiveMQEventCenter center = new ActiveMQEventCenter();
+        BeanWrapper wrapper = new BeanWrapperImpl(center);
+        PropertyValues propertyValues = new MutablePropertyValues(properties);
+        wrapper.setPropertyValues(propertyValues,false,false);
+        return center;
     }
 
 

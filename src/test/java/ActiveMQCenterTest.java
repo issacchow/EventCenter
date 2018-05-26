@@ -75,7 +75,8 @@ public class ActiveMQCenterTest {
     @Test
     public void eventCenterFactoryTest(){
         ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
-         factory.build("/Users/IssacChow/workstation/My-Projects/eventCenter/src/test/resources/activeMQEventCenter.properties");
+        IEventCenter center = factory.build("classpath:activeMQEventCenter.properties");
+        center.connect();
     }
 
 

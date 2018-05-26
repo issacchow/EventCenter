@@ -1,5 +1,5 @@
-import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.google.gson.Gson;
+import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -24,7 +24,6 @@ public class EventCenterTest {
         center.registerEventListener(listener2);
 
         center.connect();
-
         while (true) {
             Thread.sleep(1000);
         }
