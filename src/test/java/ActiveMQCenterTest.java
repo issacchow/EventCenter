@@ -1,9 +1,8 @@
-import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.isc.eventCenter.Event;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
+import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
 import com.isc.eventCenter.impl.activemq.ActiveMQEventCenterFactory;
-import org.apache.activemq.RedeliveryPolicy;
 import org.junit.Test;
 
 import java.util.Timer;
@@ -25,6 +24,7 @@ public class ActiveMQCenterTest {
 
 
         IEventCenter eventCenter = buildEventCenter("publisher");
+        eventCenter.connect();
         TargetEvent event = new TargetEvent();
         event.eventData = "aaabcc";
 
@@ -51,6 +51,22 @@ public class ActiveMQCenterTest {
     public void eventConsumerTest(){
         IEventCenter eventCenter = buildEventCenter("consumer");
         eventCenter.registerEventListener(new TargetEventListener());
+        eventCenter.connect();
+        eventCenter.reloadAllListener();
+
+        System.out.println();
+        System.out.print("consumer running");
+
+        while (true){
+
+        }
+    }
+
+    @Test
+    public void eventConsumerTest2(){
+        IEventCenter eventCenter = buildEventCenter("consumer2");
+        eventCenter.registerEventListener(new TargetEventListener());
+        eventCenter.connect();
         eventCenter.reloadAllListener();
 
         System.out.println();
@@ -64,19 +80,17 @@ public class ActiveMQCenterTest {
 
 
     private IEventCenter buildEventCenter(String id){
-        ActiveMQEventCenter eventCenter = new ActiveMQEventCenter(id,null,null,null);
-        RedeliveryPolicy policy = new RedeliveryPolicy();
-
-        eventCenter.setRedeliveryPolicy(policy);
-        return eventCenter;
+        ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
+        ActiveMQEventCenter center = (ActiveMQEventCenter) factory.build("classpath:activeMQEventCenter.properties");
+        center.setId(id);
+        return center;
     }
 
 
     @Test
     public void eventCenterFactoryTest(){
-        ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
-        IEventCenter center = factory.build("classpath:activeMQEventCenter.properties");
-        center.connect();
+       IEventCenter eventCenter = buildEventCenter("xxx");
+        eventCenter.connect();
     }
 
 
