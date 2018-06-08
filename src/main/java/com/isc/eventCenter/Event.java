@@ -12,7 +12,7 @@ import com.isc.eventCenter.annotation.EventDispatchConfig;
 public abstract class Event {
 
     public Event(){
-        this.name = this.getClass().getName();
+        this.name = this.getClass().getSimpleName();
     }
 
     @SerializedName("event_id")
