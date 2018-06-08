@@ -10,16 +10,17 @@ import com.isc.eventCenter.message.MessageProcessorFactory;
 import com.isc.eventCenter.message.receiver.IMessageReceiver;
 import com.isc.eventCenter.message.sender.IMessageSender;
 import com.isc.eventCenter.util.EventUtil;
-import org.apache.activemq.*;
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQPrefetchPolicy;
+import org.apache.activemq.RedeliveryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.jms.*;
-import javax.jms.Message;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,15 +36,16 @@ public class ActiveMQEventCenter implements
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private List<IEventListener> listenerList = new LinkedList<>();
-    //事件订阅关联的主题列表
+    //事件订阅关联的主题及队列列表
     private List<Topic> subcrbieEventTopicList = new LinkedList<>();
-
-    //发布事件关联的生产者列表,只用于发布事件时记录
-    private Map<String, MessageProducer> publishEventTopicList = new ConcurrentHashMap<>();
-
-
-    //事件订阅关联的队列列表
     private List<Queue> subcrbieEventQueueList = new LinkedList<>();
+
+    //发布事件关联的生产者列表
+    private ConcurrentHashMap<String, MessageProducer> topicProducerList = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, MessageProducer> queueProducerList = new ConcurrentHashMap<>();
+
+
+
 
     private IMessageSender messageSender = MessageProcessorFactory.getMessageSender();
 
@@ -175,23 +177,21 @@ public class ActiveMQEventCenter implements
 
         switch (dispatchMode){
             case Broadcast:{
-                Topic topic = null;
-                producer = publishEventTopicList.get(event.getName());
+                producer = topicProducerList.get(event.getName());
                 if (producer == null) {
-                    topic = session.createTopic(event.getName());
+                    Topic topic = session.createTopic(event.getName());
                     producer = session.createProducer(topic);
-                    publishEventTopicList.put(event.getName(), producer);
+                    topicProducerList.put(event.getName(), producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
             }
             case Once:{
-                Queue queue = null;
-                producer = publishEventTopicList.get(event.getName());
+                producer = queueProducerList.get(event.getName());
                 if (producer == null) {
-                    queue = session.createQueue(event.getName());
+                    Queue queue = session.createQueue(event.getName());
                     producer = session.createProducer(queue);
-                    //publishEventTopicList.put(event.getName(), producer);
+                    queueProducerList.put(event.getName(), producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
@@ -199,12 +199,12 @@ public class ActiveMQEventCenter implements
         }
 
 
-        messageSender.send(event,session,producer);
-
-
-
-
-        logger.info("public Event finish:{}", event.getClass().getName());
+        boolean success = messageSender.send(event,session,producer);
+        if(success) {
+            logger.info("public Event finish success:{}", event.getClass().getName());
+        }else{
+            logger.error("public Event finish fail:{}", event.getClass().getName());
+        }
 
     }
 
@@ -382,7 +382,9 @@ public class ActiveMQEventCenter implements
         }
         if(option.length()>0) option.insert(0,"?");
 
+
         Queue queue = session.createQueue(eventName + option.toString());
+        subcrbieEventQueueList.add(queue);
 
 
         MessageConsumer consumer = session.createConsumer(queue);
