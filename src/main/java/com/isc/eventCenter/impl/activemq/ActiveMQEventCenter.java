@@ -335,8 +335,9 @@ public class ActiveMQEventCenter implements
             //耐久性订阅者,必须对connection设定ClientId且此ID全局不能重复,否则将会抛出
             //javax.jms.JMSException:
             //You cannot create a durable subscriber without specifying a unique clientID on a Connection.
-            UUID uuid = UUID.randomUUID();
-            connection.setClientID(getId() + "-" + uuid);
+            //UUID uuid = UUID.randomUUID();
+            //connection.setClientID(getId() + "-" + uuid);
+            connection.setClientID(getId());
             connection.start();
             session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);//第二个参数,消费控制由EventListener处理
             return true;
