@@ -231,7 +231,7 @@ public class ActiveMQEventCenter implements
 
                 Class<Event> eventClass = EventUtil.getEventClass(eventListener);
                 String eventName = EventUtil.getEventName(eventClass);
-                String listenerName = eventListener.getClass().getName();
+                String listenerName = eventListener.getName();
                 EventDispatchMode dispatchModeEnum = getEventDispatchMode(eventClass);
 
                 //注册广播式事件监听器

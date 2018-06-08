@@ -6,6 +6,11 @@ package com.isc.eventCenter;
 public interface IEventListener<EventType extends Event> {
 
 
+    /**
+     * 监听器名称
+     * @return
+     */
+    String getName();
 
     /**
      * 执行事件过程
