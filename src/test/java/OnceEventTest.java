@@ -27,13 +27,16 @@ public class OnceEventTest extends TesterBase {
     }
 
 
+    //多个消费者均衡消费
     @Test
     public void onceEventListener() throws InterruptedException {
         IEventCenter eventCenter = buildEventCenter("onceEventListener1");
         eventCenter.connect();
 
         OnceEventListener listener = new OnceEventListener("listener1");
+        OnceEventListener listener2 = new OnceEventListener("listener2");
         eventCenter.registerEventListener(listener);
+        eventCenter.registerEventListener(listener2);
         eventCenter.reloadAllListener();
 
         while(true){
@@ -41,33 +44,24 @@ public class OnceEventTest extends TesterBase {
         }
     }
 
-    @Test
-    public void onceEventListener2() throws InterruptedException {
-        IEventCenter eventCenter = buildEventCenter("onceEventListener2");
-        eventCenter.connect();
 
-        OnceEventListener listener = new OnceEventListener("listener2");
-        eventCenter.registerEventListener(listener);
-        eventCenter.reloadAllListener();
-
-        while(true){
-            Thread.sleep(1000);
-        }
-    }
-
+    //独占消费者测试,同时只有一个消费者消费,多个独照消费者监听，除第一个独占消费者其他消费者将会作为后备
     @Test
     public void onceEventExclusiveListener() throws InterruptedException {
         IEventCenter eventCenter = buildEventCenter("onceEventExclusiveListener");
         eventCenter.connect();
 
         OnceEventExclusiveListener listener = new OnceEventExclusiveListener("exclusiveListener");
+        OnceEventExclusiveListener listener2 = new OnceEventExclusiveListener("exclusiveListener2");
         eventCenter.registerEventListener(listener);
+        eventCenter.registerEventListener(listener2);
         eventCenter.reloadAllListener();
 
         while(true){
             Thread.sleep(1000);
         }
     }
+
 
 
 
