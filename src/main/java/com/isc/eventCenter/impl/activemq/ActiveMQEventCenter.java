@@ -1,21 +1,23 @@
 package com.isc.eventCenter.impl.activemq;
 
-import com.google.gson.Gson;
 import com.isc.eventCenter.Event;
+import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import org.apache.activemq.ActiveMQConnection;
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.ActiveMQPrefetchPolicy;
-import org.apache.activemq.RedeliveryPolicy;
+import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.impl.activemq.annotation.ExclusiveListener;
+import com.isc.eventCenter.message.MessageProcessorFactory;
+import com.isc.eventCenter.message.receiver.IMessageReceiver;
+import com.isc.eventCenter.message.sender.IMessageSender;
+import com.isc.eventCenter.util.EventUtil;
+import org.apache.activemq.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.jms.*;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import javax.jms.Message;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,11 +34,18 @@ public class ActiveMQEventCenter implements
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private List<IEventListener> listenerList = new ArrayList<>();
+    private List<IEventListener> listenerList = new LinkedList<>();
     //事件订阅关联的主题列表
-    private List<Topic> subcrbieEventTopicList = new ArrayList<>();
-    //发布事件关联的生产者列表
+    private List<Topic> subcrbieEventTopicList = new LinkedList<>();
+
+    //发布事件关联的生产者列表,只用于发布事件时记录
     private Map<String, MessageProducer> publishEventTopicList = new ConcurrentHashMap<>();
+
+
+    //事件订阅关联的队列列表
+    private List<Queue> subcrbieEventQueueList = new LinkedList<>();
+
+    private IMessageSender messageSender = MessageProcessorFactory.getMessageSender();
 
 
     private boolean onRunning = false;
@@ -112,7 +121,7 @@ public class ActiveMQEventCenter implements
      ************/
 
     public ActiveMQEventCenter() {
-        this(null,null,null,null,false);
+        this(null, null, null, null, false);
     }
 
     public ActiveMQEventCenter(String id, String brokerurl, String username, String password) {
@@ -154,33 +163,52 @@ public class ActiveMQEventCenter implements
 
     @Override
     public void publishEvent(Event event) throws Exception {
-            logger.info("public Event:{}",event.getClass().getName());
+        logger.info("public Event:{}", event.getClass().getName());
         if (onRunning == false) {
             throw new Exception("ActiveMQCenter is not connected,please invoke connect()");
         }
 
-            MessageProducer producer = null;
-            Topic topic = null;
+        EventDispatchMode dispatchMode = getEventDispatchMode((Class<Event>) event.getClass());
 
-            //检查主题是否已创建
-            producer = publishEventTopicList.get(event.getName());
-            if (producer == null) {
-                topic = session.createTopic(event.getName());
-                producer = session.createProducer(topic);
-                publishEventTopicList.put(event.getName(), producer);
-                producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+        MessageProducer producer = null;
+
+        switch (dispatchMode){
+            case Broadcast:{
+                Topic topic = null;
+                producer = publishEventTopicList.get(event.getName());
+                if (producer == null) {
+                    topic = session.createTopic(event.getName());
+                    producer = session.createProducer(topic);
+                    publishEventTopicList.put(event.getName(), producer);
+                    producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+                }
+                break;
             }
+            case Once:{
+                Queue queue = null;
+                producer = publishEventTopicList.get(event.getName());
+                if (producer == null) {
+                    queue = session.createQueue(event.getName());
+                    producer = session.createProducer(queue);
+                    //publishEventTopicList.put(event.getName(), producer);
+                    producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+                }
+                break;
+            }
+        }
 
-            Gson gson = new Gson();
-            String json = gson.toJson(event);
 
-            TextMessage textMessage = session.createTextMessage();
-            textMessage.setText(json);
-            producer.send(textMessage);
+        messageSender.send(event,session,producer);
 
-            logger.info("public Event finish:{}",event.getClass().getName());
+
+
+
+        logger.info("public Event finish:{}", event.getClass().getName());
 
     }
+
+
 
     @Override
     public void registerEventListener(IEventListener listener) {
@@ -201,19 +229,24 @@ public class ActiveMQEventCenter implements
 
             for (IEventListener eventListener : listenerList) {
 
-                String eventName = getListenEventName(eventListener);
+                Class<Event> eventClass = EventUtil.getEventClass(eventListener);
+                String eventName = getListenEventName(eventClass);
                 String listenerName = eventListener.getClass().getName();
+                EventDispatchMode dispatchModeEnum = getEventDispatchMode(eventClass);
+
+                //注册广播式事件监听器
+                if (dispatchModeEnum == EventDispatchMode.Broadcast) {
+                    registerBroadcastEventListener(eventName, listenerName, eventListener,eventClass);
+                    continue;
+                }
+
+                //注册一次性事件监听器
+                if (dispatchModeEnum == EventDispatchMode.Once) {
+                    registerOnceEventListener(eventName, listenerName, eventListener,eventClass);
+                    continue;
+                }
 
 
-                Topic topic = session.createTopic(eventName);
-                subcrbieEventTopicList.add(topic);
-                TopicSubscriber subscriber = session.createDurableSubscriber(topic, listenerName);
-                TopicMessageListener messageListener = new TopicMessageListener();
-                messageListener.setEventCenter(this);
-                messageListener.setSession(session);
-                messageListener.setTopic(topic);
-                messageListener.setEventListener(eventListener);
-                subscriber.setMessageListener(messageListener);
             }
 
 
@@ -288,15 +321,13 @@ public class ActiveMQEventCenter implements
         );
 
 
-
-
         try {
-            connection = (ActiveMQConnection)connectionFactory.createConnection();
-            if(redeliveryPolicy !=null){
+            connection = (ActiveMQConnection) connectionFactory.createConnection();
+            if (redeliveryPolicy != null) {
                 //设置默认重发策略
                 connection.setRedeliveryPolicy(redeliveryPolicy);
             }
-            if(prefetchPolicy !=null){
+            if (prefetchPolicy != null) {
                 //设置默认预取策略
                 connection.setPrefetchPolicy(prefetchPolicy);
             }
@@ -305,7 +336,7 @@ public class ActiveMQEventCenter implements
             //javax.jms.JMSException:
             //You cannot create a durable subscriber without specifying a unique clientID on a Connection.
             UUID uuid = UUID.randomUUID();
-            connection.setClientID(getId()+"-"+uuid);
+            connection.setClientID(getId() + "-" + uuid);
             connection.start();
             session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);//第二个参数,消费控制由EventListener处理
             return true;
@@ -317,22 +348,21 @@ public class ActiveMQEventCenter implements
 
     }
 
+
     //从listener 中查询绑定的事件名称
-    private String getListenEventName(IEventListener listener) {
-        Type t = listener.getClass().getGenericInterfaces()[0];
-        ParameterizedType parameterizedType = (ParameterizedType) t;
-        Type actualType = parameterizedType.getActualTypeArguments()[0];
-        Class<Event> eventClass = (Class<Event>) actualType;
+    private String getListenEventName(Class<Event> eventClass) {
         return eventClass.getName();
     }
 
-    private Class<Event> getListenEventClass(IEventListener listener) {
-        Type t = listener.getClass().getGenericInterfaces()[0];
-        ParameterizedType parameterizedType = (ParameterizedType) t;
-        Type actualType = parameterizedType.getActualTypeArguments()[0];
-        Class<Event> eventClass = (Class<Event>) actualType;
-        return eventClass;
+
+    //获取事件分发模式
+    private EventDispatchMode getEventDispatchMode(Class<Event> eventClass) {
+        EventDispatchConfig annotation = eventClass.getAnnotation(EventDispatchConfig.class);
+        return annotation.mode();
     }
+
+
+
 
 //    @Override
 //    public void onApplicationEvent(ContextStoppedEvent event) {
@@ -341,22 +371,75 @@ public class ActiveMQEventCenter implements
 
 
     /**
-     * Inner Class
+     * 注册一次性事件监听器
+     *
+     * @param eventName
+     * @param listenerName
+     * @param eventListener
+     */
+    private void registerOnceEventListener(String eventName, String listenerName, IEventListener eventListener,Class<Event> eventClass) throws JMSException {
+
+        //配置独占模式
+        ExclusiveListener exclusiveListener = eventClass.getAnnotation(ExclusiveListener.class);
+        StringBuilder option = new StringBuilder();
+        if(exclusiveListener!=null){
+            option.append("comsumer.exclusive=true");
+        }
+        if(option.length()>0) option.insert(0,"?");
+
+        Queue queue = session.createQueue(eventName + option.toString());
+
+
+        MessageConsumer consumer = session.createConsumer(queue);
+
+
+        InnerMessageListener messageListener = new InnerMessageListener();
+        messageListener.setEventCenter(this);
+        messageListener.setSession(session);
+        messageListener.setDestination(queue);
+        messageListener.setEventListener(eventListener);
+        consumer.setMessageListener(messageListener);
+    }
+
+
+    /**
+     * 注册广播式事件监听器
+     *
+     * @param eventName
+     * @param listenerName
+     * @param eventListener
+     * @throws JMSException
+     */
+    private void registerBroadcastEventListener(String eventName, String listenerName, IEventListener eventListener,Class<Event> eventClass) throws JMSException {
+        Topic topic = session.createTopic(eventName);
+        subcrbieEventTopicList.add(topic);
+        TopicSubscriber subscriber = session.createDurableSubscriber(topic, listenerName);
+        InnerMessageListener messageListener = new InnerMessageListener();
+        messageListener.setEventCenter(this);
+        messageListener.setSession(session);
+        messageListener.setDestination(topic);
+        messageListener.setEventListener(eventListener);
+        subscriber.setMessageListener(messageListener);
+    }
+
+
+    /**
+     * 消息监听器
      **/
+    private class InnerMessageListener implements MessageListener {
 
-    private class TopicMessageListener implements MessageListener {
-
-        private Topic topic;
+        private Destination destination;
         private Session session;
         private IEventListener eventListener;
         private ActiveMQEventCenter eventCenter;
+        private IMessageReceiver  receiver = MessageProcessorFactory.getMessageReceiver();
 
-        public Topic getTopic() {
-            return topic;
+        public Destination getDestination() {
+            return destination;
         }
 
-        public void setTopic(Topic topic) {
-            this.topic = topic;
+        public void setDestination(Destination destination) {
+            this.destination = destination;
         }
 
         public Session getSession() {
@@ -385,38 +468,36 @@ public class ActiveMQEventCenter implements
 
         @Override
         public void onMessage(Message message) {
-            TextMessage msg = (TextMessage) message;
+
+            Event event = null;
             try {
-                String json = msg.getText();
-
-                logger.info("receive message - source:{}", json);
-                Gson gson = new Gson();
-                Class<Event> eventClass = getListenEventClass(this.eventListener);
-                Event event = gson.fromJson(json, eventClass);
-
-
-                String logId = UUID.randomUUID().toString();
-                logger.info("execute event(trace id:{}) - begin", logId);
-                try {
-                    boolean acknowledge = eventListener.onExecuteEvent(this.eventCenter, event);
-                    if (acknowledge) {
-                        message.acknowledge();
-                        logger.info("execute event(trace id:{}) success! acknowledge:{} - end", logId, acknowledge);
-                    }else{
-                        logger.warn("execute event(trace id:{}) fail! acknowledge:{} - end", logId, acknowledge);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.error("execute event(trace id:{}) fail ! reason:{}", logId, e.getMessage());
-                }
-
-
-            } catch (JMSException e) {
+                event = receiver.receive(message,this.getEventListener());
+            } catch (Exception e) {
                 e.printStackTrace();
+                logger.error("receive event exception:",e);
+                return;
             }
+
+            logger.info("receive message - event name:{}", event.getName());
+
+
+            String logId = UUID.randomUUID().toString();
+            logger.info("execute event(trace id:{}) - begin", logId);
+            try {
+                boolean acknowledge = eventListener.onExecuteEvent(this.eventCenter, event);
+                if (acknowledge) {
+                    message.acknowledge();
+                    logger.info("execute event(trace id:{}) success! acknowledge:{} - end", logId, acknowledge);
+                } else {
+                    logger.warn("execute event(trace id:{}) fail! acknowledge:{} - end", logId, acknowledge);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.error("execute event(trace id:{}) fail ! reason:{}", logId, e.getMessage());
+            }
+
         }
     }
-    //TopicMessageListener End
 
 
 }

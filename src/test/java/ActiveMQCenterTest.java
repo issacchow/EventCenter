@@ -1,8 +1,8 @@
 import com.isc.eventCenter.Event;
+import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import com.isc.eventCenter.impl.activemq.ActiveMQEventCenter;
-import com.isc.eventCenter.impl.activemq.ActiveMQEventCenterFactory;
+import com.isc.eventCenter.annotation.EventDispatchConfig;
 import org.junit.Test;
 
 import java.util.Timer;
@@ -11,7 +11,7 @@ import java.util.TimerTask;
 /**
  * Created by IssacChow on 17/6/18.
  */
-public class ActiveMQCenterTest {
+public class ActiveMQCenterTest extends TesterBase {
 
     /**
      * 消息事件并发发布事件测试
@@ -25,7 +25,7 @@ public class ActiveMQCenterTest {
 
         IEventCenter eventCenter = buildEventCenter("publisher");
         eventCenter.connect();
-        TargetEvent event = new TargetEvent();
+        BroadcastEvent event = new BroadcastEvent();
         event.eventData = "aaabcc";
 
         int temp = timerCount;
@@ -50,7 +50,7 @@ public class ActiveMQCenterTest {
     @Test
     public void eventConsumerTest(){
         IEventCenter eventCenter = buildEventCenter("consumer");
-        eventCenter.registerEventListener(new TargetEventListener());
+        eventCenter.registerEventListener(new BroadcastEventListener());
         eventCenter.connect();
         eventCenter.reloadAllListener();
 
@@ -65,7 +65,7 @@ public class ActiveMQCenterTest {
     @Test
     public void eventConsumerTest2(){
         IEventCenter eventCenter = buildEventCenter("consumer2");
-        eventCenter.registerEventListener(new TargetEventListener());
+        eventCenter.registerEventListener(new BroadcastEventListener());
         eventCenter.connect();
         eventCenter.reloadAllListener();
 
@@ -79,12 +79,7 @@ public class ActiveMQCenterTest {
 
 
 
-    private IEventCenter buildEventCenter(String id){
-        ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
-        ActiveMQEventCenter center = (ActiveMQEventCenter) factory.build("classpath:activeMQEventCenter.properties");
-        center.setId(id);
-        return center;
-    }
+
 
 
     @Test
@@ -118,7 +113,7 @@ public class ActiveMQCenterTest {
         }
     }
 
-    private class TargetEventListener implements IEventListener<TargetEvent> {
+    private class BroadcastEventListener implements IEventListener<BroadcastEvent> {
 
         @Override
         public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
@@ -129,7 +124,8 @@ public class ActiveMQCenterTest {
         }
     }
 
-    private class TargetEvent extends Event{
+    @EventDispatchConfig(mode = EventDispatchMode.Broadcast)
+    private class BroadcastEvent extends Event{
         private String eventData;
 
         public String getEventData() {
@@ -140,5 +136,8 @@ public class ActiveMQCenterTest {
             this.eventData = eventData;
         }
     }
+
+
+
 
 }
