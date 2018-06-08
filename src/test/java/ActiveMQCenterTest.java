@@ -50,7 +50,7 @@ public class ActiveMQCenterTest extends TesterBase {
     @Test
     public void eventConsumerTest(){
         IEventCenter eventCenter = buildEventCenter("consumer");
-        eventCenter.registerEventListener(new BroadcastEventListener());
+        eventCenter.registerEventListener(new BroadcastEventListener("broadcastEventListener1"));
         eventCenter.connect();
         eventCenter.reloadAllListener();
 
@@ -65,7 +65,7 @@ public class ActiveMQCenterTest extends TesterBase {
     @Test
     public void eventConsumerTest2(){
         IEventCenter eventCenter = buildEventCenter("consumer2");
-        eventCenter.registerEventListener(new BroadcastEventListener());
+        eventCenter.registerEventListener(new BroadcastEventListener("broadcastEventListener2"));
         eventCenter.connect();
         eventCenter.reloadAllListener();
 
@@ -114,6 +114,16 @@ public class ActiveMQCenterTest extends TesterBase {
     }
 
     private class BroadcastEventListener implements IEventListener<BroadcastEvent> {
+
+        private String name;
+        @Override
+        public String getName() {
+            return  this.name;
+        }
+
+        public BroadcastEventListener(String name){
+            this.name = name;
+        }
 
         @Override
         public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {

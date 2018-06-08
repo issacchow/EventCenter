@@ -63,6 +63,22 @@ public class OnceEventTest extends TesterBase {
     }
 
 
+    @Test
+    public void onceEventRejectListener() throws InterruptedException {
+        IEventCenter eventCenter = buildEventCenter("onceEventRejectListener");
+        eventCenter.connect();
+
+        OnceEventRejectListener listener = new OnceEventRejectListener("rejectListener");
+        eventCenter.registerEventListener(listener);
+        eventCenter.reloadAllListener();
+
+        while(true){
+            Thread.sleep(1000);
+        }
+    }
+
+
+
 
 
 
@@ -79,6 +95,12 @@ public class OnceEventTest extends TesterBase {
         public OnceEventListener(String name){
             this.name = name;
         }
+
+        @Override
+        public String getName() {
+            return null;
+        }
+
         @Override
         public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
 
@@ -92,6 +114,27 @@ public class OnceEventTest extends TesterBase {
     private  class OnceEventExclusiveListener extends OnceEventListener implements IEventListener<OnceEvent>{
         public OnceEventExclusiveListener(String name){
             super(name);
+        }
+    }
+
+    //事件拒绝监听器
+    private class OnceEventRejectListener implements IEventListener<OnceEvent>{
+
+        private String name;
+        public OnceEventRejectListener(String name){
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+            System.out.println();
+            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
+            return false;
         }
     }
 

@@ -7,6 +7,11 @@ import com.isc.eventCenter.IEventListener;
  */
 public class YYYEventListener implements IEventListener<XXXDataDidCreateEvent> {
     @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
     public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
         return false;
     }
