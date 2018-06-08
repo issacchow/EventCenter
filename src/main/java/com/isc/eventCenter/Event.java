@@ -3,6 +3,7 @@ package com.isc.eventCenter;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.util.EventUtil;
 
 /**
  * 事件抽象类
@@ -12,7 +13,7 @@ import com.isc.eventCenter.annotation.EventDispatchConfig;
 public abstract class Event {
 
     public Event(){
-        this.name = this.getClass().getSimpleName();
+        this.name = EventUtil.getEventName((Class<Event>) this.getClass());
     }
 
     @SerializedName("event_id")

@@ -230,7 +230,7 @@ public class ActiveMQEventCenter implements
             for (IEventListener eventListener : listenerList) {
 
                 Class<Event> eventClass = EventUtil.getEventClass(eventListener);
-                String eventName = getListenEventName(eventClass);
+                String eventName = EventUtil.getEventName(eventClass);
                 String listenerName = eventListener.getClass().getName();
                 EventDispatchMode dispatchModeEnum = getEventDispatchMode(eventClass);
 
@@ -349,11 +349,6 @@ public class ActiveMQEventCenter implements
     }
 
 
-    //从listener 中查询绑定的事件名称
-    private String getListenEventName(Class<Event> eventClass) {
-        return eventClass.getName();
-    }
-
 
     //获取事件分发模式
     private EventDispatchMode getEventDispatchMode(Class<Event> eventClass) {
@@ -380,10 +375,10 @@ public class ActiveMQEventCenter implements
     private void registerOnceEventListener(String eventName, String listenerName, IEventListener eventListener,Class<Event> eventClass) throws JMSException {
 
         //配置独占模式
-        ExclusiveListener exclusiveListener = eventClass.getAnnotation(ExclusiveListener.class);
+        ExclusiveListener exclusiveListener = eventListener.getClass().getAnnotation(ExclusiveListener.class);
         StringBuilder option = new StringBuilder();
         if(exclusiveListener!=null){
-            option.append("comsumer.exclusive=true");
+            option.append("consumer.exclusive=true");
         }
         if(option.length()>0) option.insert(0,"?");
 
