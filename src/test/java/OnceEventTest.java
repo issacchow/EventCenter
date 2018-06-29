@@ -2,7 +2,7 @@ import com.isc.eventCenter.Event;
 import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.annotation.EventConfig;
 import com.isc.eventCenter.impl.activemq.annotation.ExclusiveListener;
 import org.junit.Test;
 
@@ -138,7 +138,7 @@ public class OnceEventTest extends TesterBase {
         }
     }
 
-    @EventDispatchConfig(mode = EventDispatchMode.Once)
+    @EventConfig(mode = EventDispatchMode.Once)
     private class OnceEvent extends Event{
         private String eventData;
 

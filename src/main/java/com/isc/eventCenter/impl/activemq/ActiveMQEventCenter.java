@@ -4,7 +4,7 @@ import com.isc.eventCenter.Event;
 import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.annotation.EventConfig;
 import com.isc.eventCenter.impl.activemq.annotation.ExclusiveListener;
 import com.isc.eventCenter.message.MessageProcessorFactory;
 import com.isc.eventCenter.message.receiver.IMessageReceiver;
@@ -353,7 +353,7 @@ public class ActiveMQEventCenter implements
 
     //获取事件分发模式
     private EventDispatchMode getEventDispatchMode(Class<Event> eventClass) {
-        EventDispatchConfig annotation = eventClass.getAnnotation(EventDispatchConfig.class);
+        EventConfig annotation = eventClass.getAnnotation(EventConfig.class);
         return annotation.mode();
     }
 

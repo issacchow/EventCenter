@@ -2,7 +2,7 @@ import com.isc.eventCenter.Event;
 import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.annotation.EventConfig;
 import org.junit.Test;
 
 import java.util.Timer;
@@ -134,7 +134,7 @@ public class ActiveMQCenterTest extends TesterBase {
         }
     }
 
-    @EventDispatchConfig(mode = EventDispatchMode.Broadcast)
+    @EventConfig(mode = EventDispatchMode.Broadcast)
     private class BroadcastEvent extends Event{
         private String eventData;
 

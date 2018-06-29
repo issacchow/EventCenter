@@ -11,6 +11,6 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface EventDispatchConfig {
+public @interface EventConfig {
     EventDispatchMode mode() default EventDispatchMode.Broadcast;
 }

@@ -1,5 +1,5 @@
 import com.isc.eventCenter.*;
-import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.annotation.EventConfig;
 import org.junit.Test;
 
 /**
@@ -60,7 +60,7 @@ public class BroadcastEventTest extends TesterBase {
 
 
 
-    @EventDispatchConfig(mode = EventDispatchMode.Broadcast)
+    @EventConfig(mode = EventDispatchMode.Broadcast)
     private class BroadcastEvent extends Event{
         private String eventData;
 

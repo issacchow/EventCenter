@@ -2,14 +2,14 @@ package com.isc.eventCenter;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import com.isc.eventCenter.annotation.EventDispatchConfig;
+import com.isc.eventCenter.annotation.EventConfig;
 import com.isc.eventCenter.util.EventUtil;
 
 /**
  * 事件抽象类
  * Created by IssacChow on 17/6/6.
  */
-@EventDispatchConfig(mode = EventDispatchMode.Broadcast)
+@EventConfig(mode = EventDispatchMode.Broadcast)
 public abstract class Event {
 
     public Event(){
