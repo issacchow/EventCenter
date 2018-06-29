@@ -482,7 +482,7 @@ public class ActiveMQEventCenter implements
             String logId = UUID.randomUUID().toString();
             logger.info("execute event(trace id:{}) - begin", logId);
             try {
-                boolean acknowledge = eventListener.onExecuteEvent(this.eventCenter, event);
+                boolean acknowledge = eventListener.onEvent(this.eventCenter, event);
                 if (acknowledge) {
                     message.acknowledge();
                     logger.info("execute event(trace id:{}) success! acknowledge:{} - end", logId, acknowledge);

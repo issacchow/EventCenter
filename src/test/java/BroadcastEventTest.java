@@ -50,7 +50,7 @@ public class BroadcastEventTest extends TesterBase {
 
 
         @Override
-        public boolean onExecuteEvent(IEventCenter eventCenter, BroadcastEvent event) {
+        public boolean onEvent(IEventCenter eventCenter, BroadcastEvent event) {
 
             System.out.println();
             System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));

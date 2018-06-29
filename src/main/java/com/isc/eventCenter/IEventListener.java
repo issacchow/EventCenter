@@ -13,10 +13,10 @@ public interface IEventListener<EventType extends Event> {
     String getName();
 
     /**
-     * 执行事件过程
+     * 事件触发
      * @param eventCenter
      * @param event
      * @return 返回一个值表示是否完成事件的消费,true 表示消费成功,否则失败
      */
-    boolean onExecuteEvent(IEventCenter eventCenter, EventType event);
+    boolean onEvent(IEventCenter eventCenter, EventType event);
 }

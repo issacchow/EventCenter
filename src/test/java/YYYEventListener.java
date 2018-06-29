@@ -11,7 +11,7 @@ public class YYYEventListener implements IEventListener<XXXDataDidCreateEvent> {
     }
 
     @Override
-    public boolean onExecuteEvent(IEventCenter eventCenter, XXXDataDidCreateEvent event) {
+    public boolean onEvent(IEventCenter eventCenter, XXXDataDidCreateEvent event) {
         return false;
     }
 }
