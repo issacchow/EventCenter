@@ -102,7 +102,7 @@ public class OnceEventTest extends TesterBase {
         }
 
         @Override
-        public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+        public boolean onExecuteEvent(IEventCenter eventCenter, OnceEvent event) {
 
             System.out.println();
             System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
@@ -131,7 +131,7 @@ public class OnceEventTest extends TesterBase {
         }
 
         @Override
-        public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+        public boolean onExecuteEvent(IEventCenter eventCenter, OnceEvent event) {
             System.out.println();
             System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
             return false;

@@ -1,4 +1,3 @@
-import com.isc.eventCenter.Event;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
 
@@ -12,7 +11,7 @@ public class YYYEventListener implements IEventListener<XXXDataDidCreateEvent> {
     }
 
     @Override
-    public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+    public boolean onExecuteEvent(IEventCenter eventCenter, XXXDataDidCreateEvent event) {
         return false;
     }
 }

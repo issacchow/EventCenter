@@ -18,5 +18,5 @@ public interface IEventListener<EventType extends Event> {
      * @param event
      * @return 返回一个值表示是否完成事件的消费,true 表示消费成功,否则失败
      */
-    boolean onExecuteEvent(IEventCenter eventCenter, Event event);
+    boolean onExecuteEvent(IEventCenter eventCenter, EventType event);
 }

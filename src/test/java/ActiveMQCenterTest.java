@@ -126,7 +126,7 @@ public class ActiveMQCenterTest extends TesterBase {
         }
 
         @Override
-        public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+        public boolean onExecuteEvent(IEventCenter eventCenter, BroadcastEvent event) {
 
             System.out.println();
             System.out.print("consume a event");
