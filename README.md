@@ -37,6 +37,10 @@ public IEventCenter buildEventCenter(String id){
 定义一次性事件:
 ```
 @EventDispatchConfig(mode = EventDispatchMode.Once)
+@EventConfig(
+            dispatchMode = EventDispatchMode.Once,
+            eventName = "MyOnceEvent"
+)
 private class OnceEvent extends Event{
     private String eventData;
 
@@ -52,7 +56,10 @@ private class OnceEvent extends Event{
 
 定义广播式事件:
 ```
-@EventDispatchConfig(mode = EventDispatchMode.Broadcast)
+@EventConfig(
+            dispatchMode = EventDispatchMode.Broadcast,
+            eventName = "MyBroadcastEvent"
+)
 public class BroadcastEvent extends Event{
     private String eventData;
 
@@ -68,7 +75,7 @@ public class BroadcastEvent extends Event{
 
 定义事件监听器:
 ```
-public OnceEventListener implements IEventListener<OnceEvent> {
+public OnceEventListener extends AbstractEventListener implements IEventListener<OnceEvent> {
     private String name;
     public OnceEventListener(String name){
         this.name = name;
@@ -80,7 +87,7 @@ public OnceEventListener implements IEventListener<OnceEvent> {
     }
 
     @Override
-    public boolean onExecuteEvent(IEventCenter eventCenter, Event event) {
+    public boolean onExecuteEvent(IEventCenter eventCenter, OnceEvent event) {
 
         System.out.println();
         System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
