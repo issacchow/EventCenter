@@ -21,7 +21,7 @@ public class OnceEventTest extends TesterBase {
         int id = 0;
         while(id<100) {
             id++;
-            onceEvent.setId(String.valueOf(id));
+            onceEvent.setEventId(String.valueOf(id));
             eventCenter.publishEvent(onceEvent);
         }
     }
@@ -105,7 +105,7 @@ public class OnceEventTest extends TesterBase {
         public boolean onEvent(IEventCenter eventCenter, OnceEvent event) {
 
             System.out.println();
-            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
+            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getEventId()));
             return true;
         }
     }
@@ -133,7 +133,7 @@ public class OnceEventTest extends TesterBase {
         @Override
         public boolean onEvent(IEventCenter eventCenter, OnceEvent event) {
             System.out.println();
-            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
+            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getEventId()));
             return false;
         }
     }

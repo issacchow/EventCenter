@@ -17,7 +17,7 @@ public class BroadcastEventTest extends TesterBase {
         int id = 0;
         while(id<100) {
             id++;
-            onceEvent.setId(String.valueOf(id));
+            onceEvent.setEventId(String.valueOf(id));
             eventCenter.publishEvent(onceEvent);
         }
     }
@@ -53,7 +53,7 @@ public class BroadcastEventTest extends TesterBase {
         public boolean onEvent(IEventCenter eventCenter, BroadcastEvent event) {
 
             System.out.println();
-            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getId()));
+            System.out.print(String.format("%s -- consume a event,id:%s",this.name,event.getEventId()));
             return true;
         }
     }

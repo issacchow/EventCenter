@@ -177,21 +177,21 @@ public class ActiveMQEventCenter implements
 
         switch (dispatchMode){
             case Broadcast:{
-                producer = topicProducerList.get(event.getName());
+                producer = topicProducerList.get(event.getEventName());
                 if (producer == null) {
-                    Topic topic = session.createTopic(event.getName());
+                    Topic topic = session.createTopic(event.getEventName());
                     producer = session.createProducer(topic);
-                    topicProducerList.put(event.getName(), producer);
+                    topicProducerList.put(event.getEventName(), producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
             }
             case Once:{
-                producer = queueProducerList.get(event.getName());
+                producer = queueProducerList.get(event.getEventName());
                 if (producer == null) {
-                    Queue queue = session.createQueue(event.getName());
+                    Queue queue = session.createQueue(event.getEventName());
                     producer = session.createProducer(queue);
-                    queueProducerList.put(event.getName(), producer);
+                    queueProducerList.put(event.getEventName(), producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
@@ -336,7 +336,7 @@ public class ActiveMQEventCenter implements
             //javax.jms.JMSException:
             //You cannot create a durable subscriber without specifying a unique clientID on a Connection.
             //UUID uuid = UUID.randomUUID();
-            //connection.setClientID(getId() + "-" + uuid);
+            //connection.setClientID(getEventId() + "-" + uuid);
             connection.setClientID(getId());
             connection.start();
             session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);//第二个参数,消费控制由EventListener处理
@@ -476,7 +476,7 @@ public class ActiveMQEventCenter implements
                 return;
             }
 
-            logger.info("receive message - event name:{}", event.getName());
+            logger.info("receive message - event name:{}", event.getEventName());
 
 
             String logId = UUID.randomUUID().toString();

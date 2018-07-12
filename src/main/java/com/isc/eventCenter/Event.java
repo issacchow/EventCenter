@@ -1,7 +1,5 @@
 package com.isc.eventCenter;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 import com.isc.eventCenter.annotation.EventConfig;
 import com.isc.eventCenter.util.EventUtil;
 
@@ -13,29 +11,27 @@ import com.isc.eventCenter.util.EventUtil;
 public abstract class Event {
 
     public Event(){
-        this.name = EventUtil.getEventName((Class<Event>) this.getClass());
-    }
-
-    @SerializedName("event_id")
-    @Expose
-    private String id;
-
-    @SerializedName("event_name")
-    @Expose
-    private String name;
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        this.eventName = EventUtil.getEventName((Class<Event>) this.getClass());
     }
 
 
-    final  public String getName() {
-        return name;
+    private String eventId;
+
+
+    private String eventName;
+
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String id) {
+        this.eventId = id;
+    }
+
+
+    final  public String getEventName() {
+        return eventName;
     }
 
 

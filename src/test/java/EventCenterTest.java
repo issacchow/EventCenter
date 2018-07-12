@@ -36,7 +36,7 @@ public class EventCenterTest {
         center.setId("IEventCenter-00002");
 
         XXXDataDidCreateEvent event = new XXXDataDidCreateEvent();
-        event.setId(UUID.randomUUID().toString());
+        event.setEventId(UUID.randomUUID().toString());
         event.setRentalId(1L);
 
         center.connect();
@@ -51,10 +51,10 @@ public class EventCenterTest {
     public void eventSerializeTest(){
 
         XXXDataDidCreateEvent event = new XXXDataDidCreateEvent();
-        event.setId(UUID.randomUUID().toString());
+        event.setEventId(UUID.randomUUID().toString());
         event.setRentalId(1L);
 
-        event.getName();
+        event.getEventName();
         Gson gson = new Gson();
         String json = gson.toJson(event, XXXDataDidCreateEvent.class);
         System.out.println(json);

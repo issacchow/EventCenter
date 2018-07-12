@@ -10,7 +10,7 @@ public abstract class TesterBase {
     protected IEventCenter buildEventCenter(String id){
 
 //        ActiveMQEventCenter activeMQEventCenter = new ActiveMQEventCenter();
-//        activeMQEventCenter.setId(id);
+//        activeMQEventCenter.setEventId(id);
 //        return activeMQEventCenter;
 
         ActiveMQEventCenterFactory factory = new ActiveMQEventCenterFactory();
