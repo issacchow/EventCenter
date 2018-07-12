@@ -12,5 +12,16 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface EventConfig {
-    EventDispatchMode mode() default EventDispatchMode.Broadcast;
+
+    /**
+     * 事件分发模式,默认为广播模式(即广播事件)
+     * @return
+     */
+    EventDispatchMode dispatchMode() default EventDispatchMode.Broadcast;
+
+    /**
+     * 事件名称
+     * @return
+     */
+    String eventName();
 }

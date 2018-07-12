@@ -54,7 +54,7 @@ public class EventCenterTest {
         event.setEventId(UUID.randomUUID().toString());
         event.setRentalId(1L);
 
-        event.getEventName();
+//        EventUtil.getEventName(event.getClass());
         Gson gson = new Gson();
         String json = gson.toJson(event, XXXDataDidCreateEvent.class);
         System.out.println(json);

@@ -4,7 +4,6 @@ import com.isc.eventCenter.Event;
 import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
-import com.isc.eventCenter.annotation.EventConfig;
 import com.isc.eventCenter.annotation.Listener;
 import com.isc.eventCenter.message.MessageProcessorFactory;
 import com.isc.eventCenter.message.receiver.IMessageReceiver;
@@ -170,28 +169,28 @@ public class ActiveMQEventCenter implements
             throw new Exception("ActiveMQCenter is not connected,please invoke connect()");
         }
 
-        EventDispatchMode dispatchMode = getEventDispatchMode((Class<Event>) event.getClass());
-
+        EventDispatchMode dispatchMode = EventUtil.getEventDispatchMode((Class<Event>) event.getClass());
+        String eventName = EventUtil.getEventName((Class<Event>) event.getClass());
 
         MessageProducer producer = null;
 
         switch (dispatchMode){
             case Broadcast:{
-                producer = topicProducerList.get(event.getEventName());
+                producer = topicProducerList.get(eventName);
                 if (producer == null) {
-                    Topic topic = session.createTopic(event.getEventName());
+                    Topic topic = session.createTopic(eventName);
                     producer = session.createProducer(topic);
-                    topicProducerList.put(event.getEventName(), producer);
+                    topicProducerList.put(eventName, producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
             }
             case Once:{
-                producer = queueProducerList.get(event.getEventName());
+                producer = queueProducerList.get(eventName);
                 if (producer == null) {
-                    Queue queue = session.createQueue(event.getEventName());
+                    Queue queue = session.createQueue(eventName);
                     producer = session.createProducer(queue);
-                    queueProducerList.put(event.getEventName(), producer);
+                    queueProducerList.put(eventName, producer);
                     producer.setDeliveryMode(DeliveryMode.PERSISTENT);
                 }
                 break;
@@ -232,7 +231,7 @@ public class ActiveMQEventCenter implements
                 Class<Event> eventClass = EventUtil.getEventClass(eventListener);
                 String eventName = EventUtil.getEventName(eventClass);
                 String listenerName = eventListener.getName();
-                EventDispatchMode dispatchModeEnum = getEventDispatchMode(eventClass);
+                EventDispatchMode dispatchModeEnum = EventUtil.getEventDispatchMode(eventClass);
 
                 //注册广播式事件监听器
                 if (dispatchModeEnum == EventDispatchMode.Broadcast) {
@@ -253,7 +252,10 @@ public class ActiveMQEventCenter implements
             logger.info("IEventCenter [{}] reload all listener success!", this.getId());
 
 
-        } catch (JMSException e) {
+        }
+        catch (JMSException e) {
+            e.printStackTrace();
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -351,11 +353,7 @@ public class ActiveMQEventCenter implements
 
 
 
-    //获取事件分发模式
-    private EventDispatchMode getEventDispatchMode(Class<Event> eventClass) {
-        EventConfig annotation = eventClass.getAnnotation(EventConfig.class);
-        return annotation.mode();
-    }
+
 
 
 
@@ -476,7 +474,7 @@ public class ActiveMQEventCenter implements
                 return;
             }
 
-            logger.info("receive message - event name:{}", event.getEventName());
+            logger.info("receive message - event name:{}", EventUtil.getEventName((Class<Event>) event.getClass()));
 
 
             String logId = UUID.randomUUID().toString();

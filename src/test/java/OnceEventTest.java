@@ -138,7 +138,10 @@ public class OnceEventTest extends TesterBase {
         }
     }
 
-    @EventConfig(mode = EventDispatchMode.Once)
+    @EventConfig(
+            dispatchMode = EventDispatchMode.Once,
+            eventName = "OnceEventTest.OnceEvent"
+    )
     private class OnceEvent extends Event{
         private String eventData;
 
@@ -149,5 +152,6 @@ public class OnceEventTest extends TesterBase {
         public void setEventData(String eventData) {
             this.eventData = eventData;
         }
+
     }
 }

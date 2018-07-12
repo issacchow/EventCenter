@@ -1,7 +1,9 @@
 package com.isc.eventCenter.util;
 
 import com.isc.eventCenter.Event;
+import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventListener;
+import com.isc.eventCenter.annotation.EventConfig;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -20,7 +22,20 @@ public class EventUtil {
     }
 
 
-    public static String getEventName(Class<Event> eventClass){
-        return eventClass.getSimpleName();
+    //获取事件分发模式
+    public static EventDispatchMode getEventDispatchMode(Class<Event> eventClass) {
+        EventConfig config = eventClass.getAnnotation(EventConfig.class);
+        if(config==null){
+            return null;
+        }
+        return config.dispatchMode();
+    }
+
+    public static String getEventName(Class<Event> eventClass)  {
+        EventConfig config = eventClass.getAnnotation(EventConfig.class);
+        if(config==null){
+            return null;
+        }
+        return config.eventName();
     }
 }

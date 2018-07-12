@@ -60,7 +60,10 @@ public class BroadcastEventTest extends TesterBase {
 
 
 
-    @EventConfig(mode = EventDispatchMode.Broadcast)
+    @EventConfig(
+            dispatchMode = EventDispatchMode.Broadcast,
+            eventName = "BroadcastEventTest.BroadcastEvent"
+    )
     private class BroadcastEvent extends Event{
         private String eventData;
 
@@ -71,5 +74,7 @@ public class BroadcastEventTest extends TesterBase {
         public void setEventData(String eventData) {
             this.eventData = eventData;
         }
+
+
     }
 }

@@ -134,7 +134,10 @@ public class ActiveMQCenterTest extends TesterBase {
         }
     }
 
-    @EventConfig(mode = EventDispatchMode.Broadcast)
+    @EventConfig(
+            dispatchMode = EventDispatchMode.Broadcast,
+            eventName = "ActiveMQCenterTest.BroadcastEvent"
+    )
     private class BroadcastEvent extends Event{
         private String eventData;
 
@@ -145,6 +148,8 @@ public class ActiveMQCenterTest extends TesterBase {
         public void setEventData(String eventData) {
             this.eventData = eventData;
         }
+
+
     }
 
 
