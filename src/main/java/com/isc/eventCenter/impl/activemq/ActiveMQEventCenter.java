@@ -5,7 +5,7 @@ import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
 import com.isc.eventCenter.annotation.EventConfig;
-import com.isc.eventCenter.impl.activemq.annotation.ExclusiveListener;
+import com.isc.eventCenter.annotation.Listener;
 import com.isc.eventCenter.message.MessageProcessorFactory;
 import com.isc.eventCenter.message.receiver.IMessageReceiver;
 import com.isc.eventCenter.message.sender.IMessageSender;
@@ -376,9 +376,9 @@ public class ActiveMQEventCenter implements
     private void registerOnceEventListener(String eventName, String listenerName, IEventListener eventListener,Class<Event> eventClass) throws JMSException {
 
         //配置独占模式
-        ExclusiveListener exclusiveListener = eventListener.getClass().getAnnotation(ExclusiveListener.class);
+        Listener listenerConfig = eventListener.getClass().getAnnotation(Listener.class);
         StringBuilder option = new StringBuilder();
-        if(exclusiveListener!=null){
+        if(listenerConfig!=null && listenerConfig.isExclusive()){
             option.append("consumer.exclusive=true");
         }
         if(option.length()>0) option.insert(0,"?");

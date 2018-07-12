@@ -3,7 +3,7 @@ import com.isc.eventCenter.EventDispatchMode;
 import com.isc.eventCenter.IEventCenter;
 import com.isc.eventCenter.IEventListener;
 import com.isc.eventCenter.annotation.EventConfig;
-import com.isc.eventCenter.impl.activemq.annotation.ExclusiveListener;
+import com.isc.eventCenter.annotation.Listener;
 import org.junit.Test;
 
 /**
@@ -110,7 +110,7 @@ public class OnceEventTest extends TesterBase {
         }
     }
 
-    @ExclusiveListener
+    @Listener
     private  class OnceEventExclusiveListener extends OnceEventListener implements IEventListener<OnceEvent>{
         public OnceEventExclusiveListener(String name){
             super(name);

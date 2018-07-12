@@ -1,4 +1,4 @@
-package com.isc.eventCenter.impl.activemq.annotation;
+package com.isc.eventCenter.annotation;
 
 import java.lang.annotation.*;
 
@@ -10,5 +10,11 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface ExclusiveListener {
+public @interface Listener {
+    /**
+     * 是否设置为独立监听器
+     * 只对Once事件有效
+     * @return
+     */
+    boolean isExclusive() default false;
 }
