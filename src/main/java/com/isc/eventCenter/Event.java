@@ -5,7 +5,7 @@ package com.isc.eventCenter;
  * 派生的子类需要打上 @EventConfig 注解
  * Created by IssacChow on 17/6/6.
  */
-public abstract class Event {
+public class Event {
 
     /**
      * 事件唯一id
